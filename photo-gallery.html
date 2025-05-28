@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Photo Gallery</title>
+<style>
+  /* Reset and base */
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f0f2f5;
+    color: #222;
+  }
+  /* Top menu container */
+  .top-menu {
+    display: flex;
+    justify-content: center;
+    background-color: #d9e8f9; /* light blue */
+    padding: 10px 0;
+    gap: 10px;
+    user-select: none;
+  }
+  /* Menu buttons */
+  .menu-button {
+    background-color: #e6e9ed; /* light grey */
+    border: none;
+    padding: 10px 18px;
+    font-weight: bold;
+    cursor: pointer;
+    position: relative;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+  }
+  .menu-button:hover {
+    background-color: #c3d7f7;
+  }
+  /* Dropdown container */
+  .dropdown {
+    position: relative;
+    display: inline-block;
+  }
+  /* Dropdown content */
+  .dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #e6e9ed;
+    min-width: 140px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    border-radius: 4px;
+    z-index: 10;
+    top: 100%;
+    left: 0;
+  }
+  .dropdown-content button {
+    width: 100%;
+    padding: 8px 12px;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    font-weight: normal;
+    border-bottom: 1px solid #cbd2db;
+    transition: background-color 0.2s ease;
+  }
+  .dropdown-content button:last-child {
+    border-bottom: none;
+  }
+  .dropdown-content button:hover {
+    background-color: #c3d7f7;
+  }
+  /* Show dropdown on active */
+  .dropdown.show .dropdown-content {
+    display: block;
+  }
+  /* Main content container */
+  .main-content {
+    max-width: 720px;
+    margin: 30px auto 50px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    padding: 20px;
+    position: relative;
+  }
+  /* Photo container */
+  .photo-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* Photo */
+  .photo {
+    max-width: 100%;
+    max-height: 400px;
+    border-radius: 6px;
+    object-fit: contain;
+    background-color: #d9d9d9;
+  }
+  /* Navigation arrows */
+  .nav-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: #d9e8f9;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    border: none;
+    cursor: pointer;
+    opacity: 0.8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.3s ease;
+  }
+  .nav-arrow:hover {
+    opacity: 1;
+  }
+  .nav-arrow:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+  .nav-left {
+    left: 10px;
+  }
+  .nav-right {
+    right: 10px;
+  }
+  /* Arrow icons */
+  .nav-arrow svg {
+    fill: #222;
+    width: 20px;
+    height: 20px;
+  }
+  /* Photo description text */
+  .photo-text {
+    margin-top: 15px;
+    font-size: 1rem;
+    color: #444;
+    min-height: 1.5em;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<!-- Top menu -->
+<div class="top-menu">
+  <button class="menu-button" id="homeBtn">HOME</button>
+
+  <div class="dropdown" id="practiceDropdown">
+    <button class="menu-button" id="practiceBtn">PRACTICE ▼</button>
+    <div class="dropdown-content" id="practiceMenu">
+      <button data-tag="practice-first-week">First Week</button>
+      <button data-tag="practice-second-week">Second Week</button>
+    </div>
+  </div>
+
+  <div class="dropdown" id="cultureDropdown">
+    <button class="menu-button" id="cultureBtn">CULTURE ▼</button>
+    <div class="dropdown-content" id="cultureMenu">
+      <button data-tag="culture-berlin">Berlin</button>
+      <button data-tag="culture-leipzig">Leipzig</button>
+    </div>
+  </div>
+
+  <button class="menu-button" id="freeTimeBtn">FREE TIME</button>
+</div>
+
+<!-- Main content -->
+<div class="main-content">
+  <div class="photo-container">
+    <button class="nav-arrow nav-left" id="prevBtn" aria-label="Previous photo" title="Previous photo" disabled>
+      <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+    </button>
+    <img src="" alt="Photo" class="photo" id="photoDisplay" />
+    <button class="nav-arrow nav-right" id="nextBtn" aria-label="Next photo" title="Next photo" disabled>
+      <svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+    </button>
+  </div>
+  <div class="photo-text" id="photoText"></div>
+</div>
+
+<script>
+  // Photo data JSON array with url, tag, and text
+  const photos = [
+    {
+      url: "https://via.placeholder.com/720x400?text=Practice+First+Week+1",
+      tag: "practice-first-week",
+      text: "Practice - First Week Photo 1"
+    },
+    {
+      url: "https://via.placeholder.com/720x400?text=Practice+First+Week+2",
+      tag: "practice-first-week",
+      text: "Practice - First Week Photo 2"
+    },
+    {
+      url: "https://via.placeholder.com/720x400?text=Practice+Second+Week+1",
+      tag: "practice-second-week",
+      text: "Practice - Second Week Photo 1"
+    },
+    {
+      url: "https://via.placeholder.com/720x400?text=Practice+Second+Week+2",
+      tag: "practice-second-week",
+      text: "Practice - Second Week Photo 2"
+    },
+    {
+      url: "https://via.placeholder.com/720x400?text=Culture+Berlin+1",
+      tag: "culture-berlin",
+      text: "Culture - Berlin Photo 1"
+    },
+    {
+      url: "https://via.placeholder.com/720x400?text=Culture+Berlin+2",
+      tag: "culture-berlin",
+      text: "Culture - Berlin Photo 2"
+    },
+    {
+      url: "https://via.placeholder.com/720x400?text=Culture+Leipzig+1",
+      tag: "culture-leipzig",
+      text: "Culture - Leipzig Photo 1"
+    },
+    {
+      url: "https://via.placeholder.com/720x400?text=Culture+Leipzig+2",
+      tag: "culture-leipzig",
+      text: "Culture - Leipzig Photo 2"
+    },
+    {
+      url: "https://via.placeholder.com/720x400?text=Free+Time+1",
+      tag: "free-time",
+      text: "Free Time Photo 1"
+    },
+    {
+      url: "https://via.placeholder.com/720x400?text=Free+Time+2",
+      tag: "free-time",
+      text: "Free Time Photo 2"
+    }
+  ];
+
+  // State variables
+  let currentTag = null; // null means HOME (all photos)
+  let filteredPhotos = photos;
+  let currentIndex = 0;
+
+  // DOM elements
+  const photoDisplay = document.getElementById("photoDisplay");
+  const photoText = document.getElementById("photoText");
+  const prevBtn = document.getElementById("prevBtn");
+  const nextBtn = document.getElementById("nextBtn");
+
+  // Dropdown elements
+  const practiceDropdown = document.getElementById("practiceDropdown");
+  const cultureDropdown = document.getElementById("cultureDropdown");
+  const practiceBtn = document.getElementById("practiceBtn");
+  const cultureBtn = document.getElementById("cultureBtn");
+
+  // Utility: close all dropdowns
+  function closeAllDropdowns() {
+    practiceDropdown.classList.remove("show");
+    cultureDropdown.classList.remove("show");
+  }
+
+  // Show photo at currentIndex
+  function showPhoto() {
+    if (filteredPhotos.length === 0) {
+      photoDisplay.src = "";
+      photoDisplay.alt = "No photos available";
+      photoText.textContent = "No photos available for this selection.";
+      prevBtn.disabled = true;
+      nextBtn.disabled = true;
+      return;
+    }
+    const photo = filteredPhotos[currentIndex];
+    photoDisplay.src = photo.url;
+    photoDisplay.alt = photo.text;
+    photoText.textContent = photo.text;
+    prevBtn.disabled = currentIndex === 0;
+    nextBtn.disabled = currentIndex === filteredPhotos.length - 1;
+  }
+
+  // Filter photos by tag
+  function filterPhotos(tag) {
+    if (!tag) {
+      filteredPhotos = photos;
+      currentTag = null;
+    } else {
+      filteredPhotos = photos.filter(p => p.tag === tag);
+      currentTag = tag;
+    }
+    currentIndex = 0;
+    showPhoto();
+  }
+
+  // Event listeners for dropdown toggles
+  practiceBtn.addEventListener("click", e => {
+    e.stopPropagation();
+    const isShown = practiceDropdown.classList.contains("show");
+    closeAllDropdowns();
+    if (!isShown) practiceDropdown.classList.add("show");
+  });
+  cultureBtn.addEventListener("click", e => {
+    e.stopPropagation();
+    const isShown = cultureDropdown.classList.contains("show");
+    closeAllDropdowns();
+    if (!isShown) cultureDropdown.classList.add("show");
+  });
+
+  // Event listeners for dropdown menu items
+  document.getElementById("practiceMenu").querySelectorAll("button").forEach(btn => {
+    btn.addEventListener("click", e => {
+      filterPhotos(e.target.getAttribute("data-tag"));
+      closeAllDropdowns();
+    });
+  });
+  document.getElementById("cultureMenu").querySelectorAll("button").forEach(btn => {
+    btn.addEventListener("click", e => {
+      filterPhotos(e.target.getAttribute("data-tag"));
+      closeAllDropdowns();
+    });
+  });
+
+  // HOME button resets filter to all photos
+  document.getElementById("homeBtn").addEventListener("click", () => {
+    filterPhotos(null);
+  });
+
+  // FREE TIME button filters to free-time tag
+  document.getElementById("freeTimeBtn").addEventListener("click", () => {
+    filterPhotos("free-time");
+  });
+
+  // Navigation buttons
+  prevBtn.addEventListener("click", () => {
+    if (currentIndex > 0) {
+      currentIndex--;
+      showPhoto();
+    }
+  });
+  nextBtn.addEventListener("click", () => {
+    if (currentIndex < filteredPhotos.length - 1) {
+      currentIndex++;
+      showPhoto();
+    }
+  });
+
+  // Close dropdowns if clicking outside
+  document.addEventListener("click", () => {
+    closeAllDropdowns();
+  });
+
+  // Initialize with HOME (all photos)
+  filterPhotos(null);
+</script>
+
+</body>
+</html>
